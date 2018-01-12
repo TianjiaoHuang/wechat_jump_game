@@ -47,7 +47,9 @@ swipe = config.get('swipe', {
     "y2": 410
     })
 
-c = wda.Client()
+delay_time = [1.00, 1.40]
+    
+c = wda.Client('http://192.168.0.15:8100/')
 s = c.session()
 
 screenshot_backup_dir = 'screenshot_backups/'
@@ -58,11 +60,20 @@ if not os.path.isdir(screenshot_backup_dir):
 def pull_screenshot():
     c.screenshot('1.png')
 
+def game_end(im):
+    im_pixel = im.load()
+
+    # 以 50px 步长，尝试探测 scan_start_y
+    return (im_pixel[255, 1140] == (255, 255, 255)) and \
+            (im_pixel[490, 1080] == (255, 255, 255))
+
+def restart():
+    s.tap(370, 1120)
 
 def jump(distance):
     press_time = distance * time_coefficient / 1000
     print('press time: {}'.format(press_time))
-    s.tap_hold(200, 200, press_time)
+    s.tap_hold(370 + random.randrange(100), 1000 + random.randrange(100), press_time)
 
 
 def backup_screenshot(ts):
@@ -186,6 +197,11 @@ def main():
     while True:
         pull_screenshot()
         im = Image.open("./1.png")
+        if game_end(im):
+            print("Ahhhh, it failed. Let's try again")
+            restart()
+            time.sleep(3)
+            continue
 
         # 获取棋子和 board 的位置
         piece_x, piece_y, board_x, board_y = find_piece_and_board(im)
@@ -202,7 +218,9 @@ def main():
         save_debug_creenshot(ts, im, piece_x, piece_y, board_x, board_y)
         backup_screenshot(ts)
         # 为了保证截图的时候应落稳了，多延迟一会儿，随机值防 ban
-        time.sleep(random.uniform(1, 1.1))
+        time.sleep(random.uniform(delay_time[0], delay_time[1]))   
+    
+    
 
 
 if __name__ == '__main__':

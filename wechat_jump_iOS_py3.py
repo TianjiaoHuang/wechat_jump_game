@@ -11,10 +11,10 @@ from PIL import Image
 #    iphonex: 0.00125
 #    iphone6: 0.00196
 #    iphone6s plus: 0.00120
-time_coefficient = 0.00120
+time_coefficient = 0.00196
 
 
-c = wda.Client()
+c = wda.Client('http://192.168.0.15:8100/')
 s = c.session()
 
 
@@ -46,7 +46,7 @@ def update_data():
 def updatefig(*args):
     global update
     if update:
-        time.sleep(1)
+        time.sleep(0.1)
         pull_screenshot()
         im.set_array(update_data())
         update = False
